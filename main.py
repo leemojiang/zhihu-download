@@ -74,7 +74,7 @@ def judge_zhihu_type(url, hexo_uploader=False):
     return title
 
 
-def save_and_transform(title_element, content_element, author, url, hexo_uploader, date=None):
+def save_and_transform(title_element, content_element, author, url, hexo_uploader, date=None,author_url=None):
     """
     转化并保存为 Markdown 格式文件
     """
@@ -189,7 +189,7 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
 
     # 转化为 Markdown 格式
     if content:
-        markdown = f"# {title}\n\n **Author:** [{author}]\n\n **Link:** [{url}]\n\n{content}"
+        markdown = f"# {title}\n\n **Author:** [{author}][{author_url}]\n\n **Link:** [{url}]\n\n{content}"
     else:
         markdown = f"# {title}\n\n Content is empty."
 
@@ -214,10 +214,12 @@ def parse_zhihu_article(url, hexo_uploader):
     date = get_article_date(soup)
     author = soup.select_one('div.AuthorInfo').find(
         'meta', {'itemprop': 'name'}).get('content')
+    author_url = soup.select_one('div.AuthorInfo').find(
+        'meta', {'itemprop': 'url'}).get('content')
 
     # 解析知乎文章并保存为Markdown格式文件
     markdown_title = save_and_transform(
-        title_element, content_element, author, url, hexo_uploader, date)
+        title_element, content_element, author, url, hexo_uploader, date,author_url=author_url)
 
     return markdown_title
 
@@ -236,10 +238,12 @@ def parse_zhihu_answer(url, hexo_uploader):
     date = get_article_date(soup)
     author = soup.select_one('div.AuthorInfo').find(
         'meta', {'itemprop': 'name'}).get('content')
-
+    author_url = soup.select_one('div.AuthorInfo').find(
+        'meta', {'itemprop': 'url'}).get('content')
+    
     # 解析知乎文章并保存为Markdown格式文件
     markdown_title = save_and_transform(
-        title_element, content_element, author, url, hexo_uploader, date)
+        title_element, content_element, author, url, hexo_uploader, date,author_url=author_url)
 
     return markdown_title
 
