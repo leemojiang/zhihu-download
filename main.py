@@ -345,8 +345,14 @@ if __name__ == "__main__":
         os.makedirs(output_path) #请注意，如果要创建多级目录，请使用 os.makedirs() 函数而不是 os.mkdir() 函数。因为 os.mkdir() 只能用于创建单级目录。
 
     os.chdir(output_path) #直接修改工作路径
-    print('Output Dir {}'.format(os.getcwd()))
+    print('Confrim Output Dir: {}'.format(os.getcwd()))
 
-    url = args.article_url
-    # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
-    judge_zhihu_type(url, hexo_uploader=False)
+    user_input = input("按Y继续执行,按N退出:")
+    if user_input.lower() == "y":
+        url = args.article_url
+        # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
+        judge_zhihu_type(url, hexo_uploader=False)
+    elif user_input.lower() == "n":
+        pass
+
+   
