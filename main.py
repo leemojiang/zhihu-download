@@ -338,8 +338,8 @@ if __name__ == "__main__":
     output_path = os.path.expanduser(args.output)
 
     if not os.path.exists(output_path):
-        os.makedirs(output_path)
-        
+        os.makedirs(output_path) #请注意，如果要创建多级目录，请使用 os.makedirs() 函数而不是 os.mkdir() 函数。因为 os.mkdir() 只能用于创建单级目录。
+
     os.chdir(output_path) #直接修改工作路径
     print('Output Dir {}'.format(os.getcwd()))
 
