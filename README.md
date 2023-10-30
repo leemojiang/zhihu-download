@@ -14,6 +14,11 @@
 
 ![image](https://github.com/chenluda/zhihu-download/assets/45784833/5a5c27fb-4419-43fd-9ab9-69bdbe6667fe)
 
+## 增加
+
+在原版的基础上优化了命令行执行
+
+通过 python main.py [-h] [-o output_dir] article_url 执行
 ## 特点
 
 ⭐ **支持最新 HTML 结构**：持续更新以适应知乎平台的变化。
