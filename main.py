@@ -316,6 +316,7 @@ def parse_zhihu_column(url, hexo_uploader):
     progress_bar.close()  # 完成后关闭进度条
     return folder_name
 
+import argparse
 
 if __name__ == "__main__":
 
@@ -326,7 +327,22 @@ if __name__ == "__main__":
     # url = "https://zhuanlan.zhihu.com/p/640559793"
 
     # 专栏
-    url = "https://www.zhihu.com/column/c_1285538965131460608"
+    # url = "https://www.zhihu.com/column/c_1285538965131460608"
 
+    parser = argparse.ArgumentParser(description='Transform zhihu article to Markdown format')
+    parser.add_argument('article_url', help='URL of zhihu page')
+    parser.add_argument('-o', '--output', help='path of output markdown file', default='./')
+
+    args = parser.parse_args()
+
+    output_path = os.path.expanduser(args.output)
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+        
+    os.chdir(output_path) #直接修改工作路径
+    print('Output Dir {}'.format(os.getcwd()))
+
+    url = args.article_url
     # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
     judge_zhihu_type(url, hexo_uploader=False)
