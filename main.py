@@ -18,6 +18,8 @@ from urllib.parse import unquote, urlparse, parse_qs
 from tqdm import tqdm
 import json
 
+import time
+
 def insert_new_line(soup, element, num_breaks):
     """
     在指定位置插入换行符
@@ -106,7 +108,7 @@ def judge_zhihu_type(url, cookies=None, session=None, hexo_uploader=False):
     return title
 
 
-def save_and_transform(title_element, content_element, author, url, hexo_uploader, soup, date=None):
+def save_and_transform(title_element, content_element, author,author_url, url, hexo_uploader, soup, date=None):
     """
     转化并保存为 Markdown 格式文件
     """
@@ -349,7 +351,7 @@ def parse_zhihu_article(url, session, hexo_uploader):
         'meta', {'itemprop': 'url'}).get('content')
 
     markdown_title = save_and_transform(
-        title_element, content_element, author, url, hexo_uploader, soup, date)
+        title_element, content_element, author,author_url, url, hexo_uploader, soup, date)
 
     return markdown_title
 
@@ -387,7 +389,7 @@ def parse_zhihu_answer(url, session, hexo_uploader):
     
     # 解析知乎文章并保存为Markdown格式文件
     markdown_title = save_and_transform(
-        title_element, content_element, author, url, hexo_uploader, soup, date)
+        title_element, content_element, author,author_url, url, hexo_uploader, soup, date)
 
     return markdown_title
 
@@ -454,10 +456,16 @@ def parse_zhihu_column(url, session, hexo_uploader):
                         initial=already_processed, desc="解析文章")
 
     while True:
-        api_url = f"/api/v4/columns/{url.split('/')[-1]}/items?limit=10&offset={offset}"
-        response = requests.get(f"https://www.zhihu.com{api_url}")
+        if offset ==0:
+            api_url = f"/api/v4/columns/{url.split('/')[-1]}/items?ws_qiangzhisafe=1"
+        else:
+            api_url = f"/api/v4/columns/{url.split('/')[-1]}/items?limit=10&offset={offset}"
+        print(api_url)
+        response = session.get(f"https://www.zhihu.com{api_url}")
         data = response.json()
-
+        
+        print("Current Page article:{}".format(len(data["data"])))
+        # break
         for item in data["data"]:
             if item["type"] == "zvideo":
                 video_id = str(item["id"])
@@ -479,20 +487,22 @@ def parse_zhihu_column(url, session, hexo_uploader):
                 save_processed_article(processed_filename, article_id)
                 progress_bar.update(1)  # 更新进度条
 
+                print(article_link)
+
         if data["paging"]["is_end"]:
             break
 
         offset += 10
 
     progress_bar.close()  # 完成后关闭进度条
-    os.remove(processed_filename)  # 删除已处理文章的ID文件
+    # os.remove(processed_filename)  # 删除已处理文章的ID文件
     return folder_name
 
 import argparse
 
 if __name__ == "__main__":
     
-    cookies = 'your_zhihu_cookies'
+    cookies = '_zap=25ac9787-f339-48e2-8762-7c9062d38ce4; d_c0=AeCV0gTg1RePTj8GKHEsDsA1aJjurFORFHQ=|1702269904; q_c1=58bb77decfc341f3b7c9c0ac35933fb2|1702297255000|1702297255000; q_c1=58bb77decfc341f3b7c9c0ac35933fb2|1708051010000|1702297255000; __utma=51854390.1640736009.1708050893.1708050893.1708050893.1; __utmz=51854390.1708050893.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmv=51854390.100-1|2=registration_date=20180122=1^3=entry_date=20180122=1; ff_supports_webp=1; z_c0=2|1:0|10:1716725850|4:z_c0|80:MS4xVFdWekJ3QUFBQUFtQUFBQVlBSlZUU21yUG1kZUg4T3dTQTJEcjY2SnhtU2NteG5YTHR4c2RnPT0=|393f54ac6f79cda0d5e9ed6c72b29efd155ca607c79e5ae25fb42e46067ee4f8; __zse_ck=001_yFQFaUijcUoM=ery/SqoXxQsICExtLbIy7MFBEW0b4=Rkk+tBOCgLTlM7TicVw/SWA5BTPu3f65x0jDMq6BCUjKkV=eN0jXqm9ht1fguHlqKs1wJUKzwPgd2USbv7o+l; _xsrf=dcbb9d95-f3e8-4963-987b-b8411ab90f98; Hm_lvt_98beee57fd2ef70ccdd5ca52b9740c49=1717492714,1717503102,1717573239,1717657889; SESSIONID=IS2py4IduSHrYpRYB2rex4vuMy73nqTi4GpI4MYhHir; JOID=VV4cC0JBdxvIqKRBSE5oT2pyb3heCSsoud-RBy06JVy78NoSHgLSeqGnqk9ILis9w4hCAN6Vmvdq15mYSab613o=; osd=VV0TBUJBdBTGqKRCR0BoT2l9YXheCiQmud-SCCM6JV-0_toSHQ3ceqGkpUFILigyzYhCA9Gbmvdp2JeYSaX12Xo=; tst=r; KLBRSID=d1f07ca9b929274b65d830a00cbd719a|1717677125|1717674114; Hm_lpvt_98beee57fd2ef70ccdd5ca52b9740c49=1717677125; BEC=5ee33e0856ed13c879689106c041a08d'
 
     # 回答
     # url = "https://www.zhihu.com/question/362131975/answer/2182682685"
@@ -524,7 +534,7 @@ if __name__ == "__main__":
     if user_input.lower() == "y":
         url = args.article_url
         # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
-        judge_zhihu_type(url, hexo_uploader=False)
+        judge_zhihu_type(url,cookies ,hexo_uploader=False)
     elif user_input.lower() == "n":
         pass
 
