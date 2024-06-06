@@ -10,9 +10,17 @@
   <a href="#">
     <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
+  <a href="#">
+    <img alt="Time" src="https://img.shields.io/badge/更新时间-2024.04.29-green" />
+  </a>
+  <a href="http://8.130.108.230:5000/" target="_blank">
+    <img alt="Web" src="https://img.shields.io/badge/演示网站-Web-red" />
+  </a>
 </div>
 
-![image](https://github.com/chenluda/zhihu-download/assets/45784833/5a5c27fb-4419-43fd-9ab9-69bdbe6667fe)
+<div align="center">
+  <img src="https://github.com/chenluda/zhihu-download/assets/45784833/2f23dc41-7a24-48ad-8480-71d106818830" alt="Zhihu Article">
+</div>
 
 ## 增加
 
@@ -46,6 +54,10 @@ python app.py
 ```
 > **Note**
 >
+> 为应对知乎最新的验证机制，添加 Cookies 属性，[点击](http://8.130.108.230:5000/get-cookies) 查看如何获取知乎 Cookie。
+
+> **Note**
+>
 > flask 2.2 以下版本需要将 app.py 中第 46 行，
 > ``` python
 > return send_file(zip_data, download_name = markdown_title + ".zip", as_attachment=True)
@@ -54,6 +66,14 @@ python app.py
 > ``` python
 > return send_file(zip_data, attachment_filename = markdown_title + ".zip", as_attachment=True)
 > ```
+
+> **Note**
+>
+> Internet Download Manager (IDM) 会自动拦截下载链接并进行处理，导致两次请求。  
+> 也不是什么大问题，有强迫症的朋友可以将网站加入 IDM 的 '下列地址不要自动开始下载'。  
+> 1. 打开 IDM 界面，菜单栏 '下载' -> '选项' -> '文件类型'；
+> 2. 找到 '下列地址不要自动开始下载：' 文字下方的 '编辑列表...' 按钮；
+> 3. 对于本地部署，直接将 'http://127.0.0.1:5000/' 加入。线上部署，将对应网址加入。
 
 > **Note**
 >
@@ -73,3 +93,13 @@ python app.py
 * 2023-06-22：为数学公式添加转义符号，增强兼容性。
 * 2023-08-19：修复公式和卡片链接相关的多项 bug。
 * 2023-10-27：优化代码，增加断点续传功能，改进图片处理和链接优化。（感谢 [Aswatthafei](https://github.com/Aswatthafei) 的提醒！）
+* 2023-11-16：优化链接等格式。
+* 2023-11-22：更改内容标题格式。
+* 2023-12-27：更改内容标题格式；增加对数学公式中 `\tag{*}` 的特殊处理。（感谢 [korruz](https://github.com/korruz) 的意见！）
+* 2024-03-14：增加动图支持；更改链接格式。
+* 2024-04-22：增加 Cookies 以应对验证机制。
+* 2024-04-29：增加对视频的处理。
+
+## 趋势
+
+[![Star History Chart](https://api.star-history.com/svg?repos=chenluda/zhihu-download&type=Date)](https://star-history.com/#chenluda/zhihu-download&Date)
