@@ -101,6 +101,9 @@ def judge_zhihu_type(url, cookies=None, session=None, hexo_uploader=False):
         # 如果是视频
         title = parse_zhihu_zvideo(url, session, hexo_uploader)
 
+    elif url.find("posts") != -1:
+        title = parse_zhihu_posts(url,session)
+
     else:
         # 如果是单篇文章
         title = parse_zhihu_article(url, session, hexo_uploader)
@@ -147,7 +150,9 @@ def save_and_transform(title_element, content_element, author,author_url, url, h
 
         # 处理回答中的图片
         for img in content_element.find_all("img"):
-            if 'src' in img.attrs:
+            if 'data-original' in img.attrs:
+                img_url = img.attrs['data-original']
+            elif 'src' in img.attrs:
                 img_url = img.attrs['src']
             else:
                 continue
@@ -411,6 +416,35 @@ def save_processed_article(filename, article_id):
     with open(filename, 'a', encoding='utf-8') as file:
         file.write(article_id + '\n')
 
+def parse_zhihu_posts(url,session):
+    """
+    解析某个知乎用户的所有文章 并保存到文件夹
+
+    """
+    title = "所有文章"
+
+    folder_name = get_valid_filename(title)
+    os.makedirs(folder_name, exist_ok=True)
+    os.chdir(folder_name)
+
+    processed_filename = "processed_articles.txt"
+    processed_articles = load_processed_articles(processed_filename)
+
+    # 获取所有文章链接
+    url_template = "https://zhuanlan.zhihu.com/p/{id}"
+    offset = 0
+    total_parsed = 0
+
+    # 首先获取总文章数
+    api_url = f"/api/v4/members/{url.split('/')[-2]}/articles?limit=20&offset=0"
+    url = f"https://www.zhihu.com{api_url}"
+    print(url)
+    response = session.get(url)
+    print(response)
+
+    total_articles = response.json()["paging"]["totals"]
+
+    print(total_articles)
 
 def parse_zhihu_column(url, session, hexo_uploader):
     """
@@ -483,6 +517,7 @@ def parse_zhihu_column(url, session, hexo_uploader):
                     continue
 
                 article_link = url_template.format(id=article_id)
+                time.sleep(1)
                 judge_zhihu_type(article_link, None, session, hexo_uploader)
                 save_processed_article(processed_filename, article_id)
                 progress_bar.update(1)  # 更新进度条
@@ -502,7 +537,7 @@ import argparse
 
 if __name__ == "__main__":
     
-    cookies = '_zap=25ac9787-f339-48e2-8762-7c9062d38ce4; d_c0=AeCV0gTg1RePTj8GKHEsDsA1aJjurFORFHQ=|1702269904; q_c1=58bb77decfc341f3b7c9c0ac35933fb2|1702297255000|1702297255000; q_c1=58bb77decfc341f3b7c9c0ac35933fb2|1708051010000|1702297255000; __utma=51854390.1640736009.1708050893.1708050893.1708050893.1; __utmz=51854390.1708050893.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmv=51854390.100-1|2=registration_date=20180122=1^3=entry_date=20180122=1; ff_supports_webp=1; z_c0=2|1:0|10:1716725850|4:z_c0|80:MS4xVFdWekJ3QUFBQUFtQUFBQVlBSlZUU21yUG1kZUg4T3dTQTJEcjY2SnhtU2NteG5YTHR4c2RnPT0=|393f54ac6f79cda0d5e9ed6c72b29efd155ca607c79e5ae25fb42e46067ee4f8; __zse_ck=001_yFQFaUijcUoM=ery/SqoXxQsICExtLbIy7MFBEW0b4=Rkk+tBOCgLTlM7TicVw/SWA5BTPu3f65x0jDMq6BCUjKkV=eN0jXqm9ht1fguHlqKs1wJUKzwPgd2USbv7o+l; _xsrf=dcbb9d95-f3e8-4963-987b-b8411ab90f98; Hm_lvt_98beee57fd2ef70ccdd5ca52b9740c49=1717492714,1717503102,1717573239,1717657889; SESSIONID=IS2py4IduSHrYpRYB2rex4vuMy73nqTi4GpI4MYhHir; JOID=VV4cC0JBdxvIqKRBSE5oT2pyb3heCSsoud-RBy06JVy78NoSHgLSeqGnqk9ILis9w4hCAN6Vmvdq15mYSab613o=; osd=VV0TBUJBdBTGqKRCR0BoT2l9YXheCiQmud-SCCM6JV-0_toSHQ3ceqGkpUFILigyzYhCA9Gbmvdp2JeYSaX12Xo=; tst=r; KLBRSID=d1f07ca9b929274b65d830a00cbd719a|1717677125|1717674114; Hm_lpvt_98beee57fd2ef70ccdd5ca52b9740c49=1717677125; BEC=5ee33e0856ed13c879689106c041a08d'
+    cookies = 'SESSIONID=3RXGvyJ1flH5bijngia5TmCQgKGjOxSFxMtjbC65lcJ; JOID=VlkRBk2KhhvzCCqmBIuRSb3vjVEcrKA50ykMgCaroD3RKAuAInEWvZUPKqIGk2r6wfROYyWb7WmEarPOq12LsFM=; osd=U1kQA0-Phhr2Ci-mBY6TTL3uiFMZrKE80SwMgSOppT3QLQmFInATv5APK6cElmr7xPZLYySe72yEa7bMrl2KtVE=; __utmv=51854390.100-1|2=registration_date=20180122=1^3=entry_date=20180122=1; _xsrf=xqRlaiRz24A25hfHdtsf018gCqvzfpf7; q_c1=58bb77decfc341f3b7c9c0ac35933fb2|1718278039000|1702297255000; __utma=51854390.1640736009.1708050893.1708050893.1718278043.2; Hm_lvt_bff3d83079cef1ed8fc5e3f4579ec3b3=1733140111,1734962961; edu_user_uuid=edu-v1|50d6a0ec-f96b-43e3-a870-49af6f178065; _zap=9dcc3c8f-9b5c-4a21-a306-7a84036d61c9; d_c0=AABSDxY-2RmPTqbArHuejPUvFA3EBQGSQw4=|1736855628; z_c0=2|1:0|10:1738643716|4:z_c0|80:MS4xVFdWekJ3QUFBQUFtQUFBQVlBSlZUUWxuZG1qaDZpcE5NcEczYzZnb1VPQXZrVEwyVkg3RUZBPT0=|edca31a17161af4b8bce738f77d8159870a995155ea77d311026f3a654a4c1d4; tst=r; __zse_ck=004_jKC1ZZAvFT4Mj6Xr5p5dPqWc72I83YHzHUBWGUR=z2B/TsMhr=F5zBaZx0nph7x3=TJTgK3sdjJ0cZHvm3bqwpFQhuJvcjRymIJyeptH6xuI/QEIAWEmFi1q2tUJPB8J-pA2+dMJw0TOIHw3P2XO9+kNVUEfEK8glOmnQJXkF3GfSI0JT9SXLQBVAeFIUl1UQqqjQAVIEkKZk/9V/qTrpbxXVF3cDWbkKT+65I5liaenkPQ4xFF5/kHOJ2eLVscgb; BEC=69a31c4b51f80d1feefe6d6caeac6056; Hm_lvt_98beee57fd2ef70ccdd5ca52b9740c49=1738292766,1738643715,1738673923,1738839291; Hm_lpvt_98beee57fd2ef70ccdd5ca52b9740c49=1738839291; HMACCOUNT=9AAB3A37A729F9CD'
 
     # 回答
     # url = "https://www.zhihu.com/question/362131975/answer/2182682685"
